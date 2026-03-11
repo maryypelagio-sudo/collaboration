@@ -1,12 +1,6 @@
 <script>
     import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.svelte";
-    import { onMount } from "svelte";
     import { FileText, Download, ArrowLeft } from "lucide-svelte";
-
-    onMount(() => {
-        // Automatically trigger PDF download when page loads
-        window.location.href = "/report/download";
-    });
 </script>
 
 <AuthenticatedLayout>
@@ -21,11 +15,11 @@
             </div>
 
             <h1 class="text-2xl font-bold text-slate-900 mb-2">
-                Generating Report...
+                Inventory Report
             </h1>
             <p class="text-slate-600 mb-6">
-                Your inventory report is being prepared. The download should
-                begin automatically.
+                Click the button below to download your inventory report as a
+                PDF.
             </p>
 
             <div class="flex flex-col gap-3">
