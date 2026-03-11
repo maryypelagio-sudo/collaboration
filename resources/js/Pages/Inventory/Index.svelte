@@ -1,12 +1,12 @@
 <script>
     import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.svelte';
     import { router, useForm } from '@inertiajs/svelte';
-    import { 
-        Plus, 
-        Search, 
-        MoreVertical, 
-        ArrowUpDown, 
-        TrendingUp, 
+    import {
+        Plus,
+        Search,
+        MoreVertical,
+        ArrowUpDown,
+        TrendingUp,
         Package,
         X,
         Edit,
@@ -21,26 +21,15 @@
     export let success = null;
 
     let searchQuery = '';
-    
-    $: filteredItems = items.filter(item => {
-        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            item.sku?.toLowerCase().includes(searchQuery.toLowerCase());
-        
-        if (selectedStatus === 'active') return matchesSearch && item.is_active;
-        if (selectedStatus === 'inactive') return matchesSearch && !item.is_active;
-        if (selectedStatus === 'rarely_used') return matchesSearch && item.is_rarely_used;
-        
-        return matchesSearch;
-    });
 
-    let selectedStatus = 'all';
+    $: filteredItems = items.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.sku?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-    const getStatusColor = (item) => {
-        if (item.status === 'damaged') return 'bg-rose-100 text-rose-700 border-rose-200';
-        if (item.status === 'in_maintenance') return 'bg-amber-100 text-amber-700 border-amber-200';
-        
-        if (item.quantity <= 0) return 'bg-rose-100 text-rose-700 border-rose-200';
-        if (item.quantity <= item.min_stock_level) return 'bg-amber-100 text-amber-700 border-amber-200';
+    const getStatusColor = (quantity, min) => {
+        if (quantity <= 0) return 'bg-rose-100 text-rose-700 border-rose-200';
+        if (quantity <= min) return 'bg-amber-100 text-amber-700 border-amber-200';
         return 'bg-emerald-100 text-emerald-700 border-emerald-200';
     };
 
@@ -177,14 +166,14 @@
                 <p class="text-slate-500 mt-1">Manage and track all iReply back office supplies and equipment.</p>
             </div>
             <div class="flex items-center gap-3">
-                <button 
+                <button
                     on:click={openAddCategory}
                     class="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium text-sm hover:bg-slate-50 transition-colors shadow-sm"
                 >
                     <Layers size={18} />
                     Add Category
                 </button>
-                <button 
+                <button
                     on:click={openAddItem}
                     class="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95"
                 >
@@ -205,10 +194,10 @@
         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center">
             <div class="relative flex-1 w-full">
                 <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input 
-                    type="text" 
+                <input
+                    type="text"
                     bind:value={searchQuery}
-                    placeholder="Search by name or SKU..." 
+                    placeholder="Search by name or SKU..."
                     class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                 />
             </div>
@@ -282,7 +271,7 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-semibold border border-slate-200">
-                                        {item.category.name}
+                                        {item.category?.name || 'Uncategorized'}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
@@ -308,24 +297,17 @@
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {#if item.status === 'available'}
-                                        <button 
-                                            on:click={() => openReportDamage(item)}
-                                            class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Report Damage">
-                                            <AlertCircle size={18} />
-                                        </button>
-                                        {/if}
-                                        <button 
+                                        <button
                                             on:click={() => openAdjustStock(item)}
                                             class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Adjust Stock">
                                             <TrendingUp size={18} />
                                         </button>
-                                        <button 
+                                        <button
                                             on:click={() => openEditItem(item)}
                                             class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Item">
                                             <Edit size={18} />
                                         </button>
-                                        <button 
+                                        <button
                                             on:click={() => deleteItem(item.id)}
                                             class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete Item">
                                             <Trash2 size={18} />
@@ -351,7 +333,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
                 <p>Showing {filteredItems.length} of {items.length} items</p>
                 <div class="flex items-center gap-2">
@@ -375,8 +357,8 @@
             <div class="p-6 overflow-y-auto">
                 <form on:submit|preventDefault={submitItem} class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Item Name</label>
-                        <input type="text" bind:value={$itemForm.name} class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required/>
+                        <label for="item_name" class="block text-sm font-medium text-slate-700 mb-1">Item Name</label>
+                        <input id="item_name" type="text" bind:value={$itemForm.name} class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required/>
                         {#if $itemForm.errors?.name}
                             <p class="text-xs text-rose-500 mt-1">{$itemForm.errors.name}</p>
                         {/if}
@@ -384,15 +366,15 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">SKU</label>
-                            <input type="text" bind:value={$itemForm.sku} class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                            <label for="item_sku" class="block text-sm font-medium text-slate-700 mb-1">SKU</label>
+                            <input id="item_sku" type="text" bind:value={$itemForm.sku} class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
                             {#if $itemForm.errors?.sku}
                                 <p class="text-xs text-rose-500 mt-1">{$itemForm.errors.sku}</p>
                             {/if}
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Category</label>
-                            <select bind:value={$itemForm.category_id} class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white" required>
+                            <label for="item_category" class="block text-sm font-medium text-slate-700 mb-1">Category</label>
+                            <select id="item_category" bind:value={$itemForm.category_id} class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white" required>
                                 <option value="" disabled>Select category</option>
                                 {#each categories as category}
                                     <option value={category.id}>{category.name}</option>
@@ -406,22 +388,22 @@
 
                     <div class="grid grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Quantity</label>
-                            <input type="number" bind:value={$itemForm.quantity} min="0" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                            <label for="item_qty" class="block text-sm font-medium text-slate-700 mb-1">Quantity</label>
+                            <input id="item_qty" type="number" bind:value={$itemForm.quantity} min="0" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
                             {#if $itemForm.errors?.quantity}
                                 <p class="text-xs text-rose-500 mt-1">{$itemForm.errors.quantity}</p>
                             {/if}
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Unit</label>
-                            <input type="text" bind:value={$itemForm.unit} placeholder="pcs, kg, etc." class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required/>
+                            <label for="item_unit" class="block text-sm font-medium text-slate-700 mb-1">Unit</label>
+                            <input id="item_unit" type="text" bind:value={$itemForm.unit} placeholder="pcs, kg, etc." class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required/>
                             {#if $itemForm.errors?.unit}
                                 <p class="text-xs text-rose-500 mt-1">{$itemForm.errors.unit}</p>
                             {/if}
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Min Stock</label>
-                            <input type="number" bind:value={$itemForm.min_stock_level} min="0" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                            <label for="item_min" class="block text-sm font-medium text-slate-700 mb-1">Min Stock</label>
+                            <input id="item_min" type="number" bind:value={$itemForm.min_stock_level} min="0" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
                             {#if $itemForm.errors?.min_stock_level}
                                 <p class="text-xs text-rose-500 mt-1">{$itemForm.errors.min_stock_level}</p>
                             {/if}
@@ -460,15 +442,15 @@
             <div class="p-6">
                 <form on:submit|preventDefault={submitCategory} class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Category Name</label>
-                        <input type="text" bind:value={$categoryForm.name} class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required/>
+                        <label for="cat_name" class="block text-sm font-medium text-slate-700 mb-1">Category Name</label>
+                        <input id="cat_name" type="text" bind:value={$categoryForm.name} class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required/>
                         {#if $categoryForm.errors?.name}
                             <p class="text-xs text-rose-500 mt-1">{$categoryForm.errors.name}</p>
                         {/if}
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                        <textarea bind:value={$categoryForm.description} rows="3" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"></textarea>
+                        <label for="cat_desc" class="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                        <textarea id="cat_desc" bind:value={$categoryForm.description} rows="3" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"></textarea>
                         {#if $categoryForm.errors?.description}
                             <p class="text-xs text-rose-500 mt-1">{$categoryForm.errors.description}</p>
                         {/if}
@@ -499,23 +481,23 @@
             <div class="p-6">
                 <form on:submit|preventDefault={submitAdjustStock} class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Adjustment Type</label>
-                        <select bind:value={$adjustForm.type} class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white" required>
+                        <label for="adjust_type" class="block text-sm font-medium text-slate-700 mb-1">Adjustment Type</label>
+                        <select id="adjust_type" bind:value={$adjustForm.type} class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white" required>
                             <option value="in">Add Stock (In)</option>
                             <option value="out">Remove Stock (Out)</option>
                             <option value="adjustment">Set Exact Count</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Quantity/Amount</label>
-                        <input type="number" bind:value={$adjustForm.quantity} min="0" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required/>
+                        <label for="adjust_quantity" class="block text-sm font-medium text-slate-700 mb-1">Quantity/Amount</label>
+                        <input id="adjust_quantity" type="number" bind:value={$adjustForm.quantity} min="0" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required/>
                         {#if $adjustForm.errors?.quantity}
                             <p class="text-xs text-rose-500 mt-1">{$adjustForm.errors.quantity}</p>
                         {/if}
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Notes / Reason</label>
-                        <textarea bind:value={$adjustForm.notes} rows="2" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"></textarea>
+                        <label for="adjust_notes" class="block text-sm font-medium text-slate-700 mb-1">Notes / Reason</label>
+                        <textarea id="adjust_notes" bind:value={$adjustForm.notes} rows="2" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"></textarea>
                     </div>
 
                     <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
