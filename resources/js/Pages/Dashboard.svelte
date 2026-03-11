@@ -1,18 +1,20 @@
 <script>
     import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.svelte';
-    import { Package, AlertTriangle, ArrowUpRight, ArrowDownRight, Layers } from 'lucide-svelte';
+    import { Package, AlertTriangle, ArrowUpRight, ArrowDownRight, Layers, AlertCircle } from 'lucide-svelte';
 
     export let auth = {};
     export let stats = {
         total_items: 0,
         low_stock: 0,
-        total_categories: 0
+        total_categories: 0,
+        in_maintenance: 0
     };
     export let recent_items = [];
 
     $: displayStats = [
         { name: 'Total Items', value: stats.total_items, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
         { name: 'Low Stock', value: stats.low_stock, icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { name: 'In Maintenance', value: stats.in_maintenance, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
         { name: 'Categories', value: stats.total_categories, icon: Layers, color: 'text-indigo-600', bg: 'bg-indigo-50' },
     ];
 </script>
@@ -61,19 +63,18 @@
 
         <!-- Recent Activity & Charts Placeholder -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Recent Items Table Preview -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-                    <h3 class="font-bold text-slate-800">Recent Items</h3>
-                    <a href="/inventory" class="text-sm font-semibold text-blue-600 hover:text-blue-700">View All</a>
+                    <h3 class="font-bold text-slate-800">Recent Borrowings</h3>
+                    <a href="/borrowings" class="text-sm font-semibold text-blue-600 hover:text-blue-700">View All</a>
                 </div>
                 <div class="p-0 overflow-x-auto">
                     <table class="w-full text-left">
                         <thead>
                             <tr class="bg-slate-50/50">
-                                <th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Item Name</th>
-                                <th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Stock</th>
+                                <th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Equipment</th>
+                                <th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Borrower</th>
+                                <th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Status</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-sm">

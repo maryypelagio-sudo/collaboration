@@ -11,8 +11,10 @@
         X,
         Edit,
         Trash2,
-        Layers
+        Layers,
+        AlertCircle
     } from 'lucide-svelte';
+    import { onMount } from 'svelte';
 
     export let items = [];
     export let categories = [];
@@ -31,9 +33,12 @@
         return 'bg-emerald-100 text-emerald-700 border-emerald-200';
     };
 
-    const getStatusText = (quantity, min) => {
-        if (quantity <= 0) return 'Out of Stock';
-        if (quantity <= min) return 'Low Stock';
+    const getStatusText = (item) => {
+        if (item.status === 'damaged') return 'Damaged';
+        if (item.status === 'in_maintenance') return 'In Maintenance';
+        
+        if (item.quantity <= 0) return 'Out of Stock';
+        if (item.quantity <= item.min_stock_level) return 'Low Stock';
         return 'In Stock';
     };
 
@@ -42,6 +47,8 @@
     let isEditMode = false;
     let showCategoryModal = false;
     let showAdjustModal = false;
+    let showDamageModal = false;
+    let selectedItem = null;
 
     // Forms
     const itemForm = useForm({
@@ -52,6 +59,7 @@
         quantity: 0,
         unit: 'pcs',
         min_stock_level: 5,
+        is_active: true,
     });
 
     const categoryForm = useForm({
@@ -64,6 +72,11 @@
         type: 'in',
         quantity: 1,
         notes: '',
+    });
+
+    const damageForm = useForm({
+        item_id: null,
+        description: '',
     });
 
     // Handlers
@@ -129,6 +142,19 @@
             onSuccess: () => { showAdjustModal = false; }
         });
     }
+
+    function openReportDamage(item) {
+        $damageForm.reset();
+        $damageForm.item_id = item.id;
+        selectedItem = item;
+        showDamageModal = true;
+    }
+
+    function submitReportDamage() {
+        $damageForm.post('/maintenance', {
+            onSuccess: () => { showDamageModal = false; }
+        });
+    }
 </script>
 
 <AuthenticatedLayout>
@@ -187,6 +213,34 @@
             </button>
         </div>
 
+        <!-- Status Filters -->
+        <div class="flex flex-wrap gap-2">
+            <button 
+                on:click={() => selectedStatus = 'all'}
+                class="px-4 py-2 rounded-xl text-sm font-bold transition-all {selectedStatus === 'all' ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}"
+            >
+                All Items
+            </button>
+            <button 
+                on:click={() => selectedStatus = 'active'}
+                class="px-4 py-2 rounded-xl text-sm font-bold transition-all {selectedStatus === 'active' ? 'bg-emerald-600 text-white shadow-md' : 'bg-white text-emerald-600 border border-emerald-200 hover:bg-emerald-50'}"
+            >
+                Active
+            </button>
+            <button 
+                on:click={() => selectedStatus = 'inactive'}
+                class="px-4 py-2 rounded-xl text-sm font-bold transition-all {selectedStatus === 'inactive' ? 'bg-slate-500 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'}"
+            >
+                Inactive
+            </button>
+            <button 
+                on:click={() => selectedStatus = 'rarely_used'}
+                class="px-4 py-2 rounded-xl text-sm font-bold transition-all {selectedStatus === 'rarely_used' ? 'bg-amber-500 text-white shadow-md' : 'bg-white text-amber-600 border border-amber-200 hover:bg-amber-50'}"
+            >
+                Rarely Used
+            </button>
+        </div>
+
         <!-- Inventory Table -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden z-0">
             <div class="overflow-x-auto">
@@ -196,6 +250,7 @@
                             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Item Details</th>
                             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Category</th>
                             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Status</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Activity</th>
                             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Quantity</th>
                             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                         </tr>
@@ -220,9 +275,19 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <span class="px-3 py-1 border rounded-full text-[10px] font-bold uppercase tracking-wide {getStatusColor(item.quantity, item.min_stock_level)}">
-                                        {getStatusText(item.quantity, item.min_stock_level)}
+                                    <span class="px-3 py-1 border rounded-full text-[10px] font-bold uppercase tracking-wide {getStatusColor(item)}">
+                                        {getStatusText(item)}
                                     </span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    {#if item.is_active}
+                                        <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold">ACTIVE</span>
+                                    {:else}
+                                        <span class="px-2 py-1 bg-slate-100 text-slate-500 rounded text-[10px] font-bold">INACTIVE</span>
+                                    {/if}
+                                    {#if item.is_rarely_used}
+                                        <span class="ml-1 px-2 py-1 bg-amber-100 text-amber-700 rounded text-[10px] font-bold">RARELY USED</span>
+                                    {/if}
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex flex-col items-end">
@@ -345,6 +410,13 @@
                         </div>
                     </div>
 
+                    <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-4">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="is_active" bind:checked={$itemForm.is_active} class="w-5 h-5 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"/>
+                            <label for="is_active" class="text-sm font-bold text-slate-700 cursor-pointer">Mark as Active Item</label>
+                        </div>
+                    </div>
+
                     <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
                         <button type="button" on:click={() => showItemModal = false} class="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-50 rounded-xl transition-colors">Cancel</button>
                         <button type="submit" disabled={$itemForm.processing} class="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50">
@@ -432,6 +504,44 @@
                         <button type="button" on:click={() => showAdjustModal = false} class="px-4 py-2 text-slate-600 font-medium hover:bg-slate-50 rounded-xl transition-colors">Cancel</button>
                         <button type="submit" disabled={$adjustForm.processing} class="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all disabled:opacity-50">
                             Apply Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {/if}
+    <!-- Report Damage Modal -->
+    {#if showDamageModal}
+    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-bold text-lg text-slate-800">Report Damaged Item</h3>
+                <button type="button" on:click={() => showDamageModal = false} class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-50 transition-colors">
+                    <X size={20} />
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="mb-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">reporting item</p>
+                    <p class="font-bold text-slate-800">{selectedItem?.name}</p>
+                </div>
+                <form on:submit|preventDefault={submitReportDamage} class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Describe the Issue</label>
+                        <textarea 
+                            bind:value={$damageForm.description} 
+                            rows="4" 
+                            class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none" 
+                            placeholder="What happened to this item?"
+                            required
+                        ></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+                        <button type="button" on:click={() => showDamageModal = false} class="px-4 py-2 text-slate-600 font-medium hover:bg-slate-50 rounded-xl transition-colors">Cancel</button>
+                        <button type="submit" disabled={$damageForm.processing} class="px-4 py-2 bg-rose-600 text-white font-semibold rounded-xl hover:bg-rose-700 transition-all disabled:opacity-50">
+                            Report Damage
                         </button>
                     </div>
                 </form>
