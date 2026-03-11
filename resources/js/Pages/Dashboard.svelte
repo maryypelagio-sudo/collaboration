@@ -105,7 +105,6 @@
 
         <!-- Recent Activity & Charts Placeholder -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-<<<<<<< HEAD
             <!-- Recent Items Table Preview -->
             <div
                 class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
@@ -119,18 +118,11 @@
                         class="text-sm font-semibold text-blue-600 hover:text-blue-700"
                         >View All</a
                     >
-=======
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-                    <h3 class="font-bold text-slate-800">Recent Borrowings</h3>
-                    <a href="/borrowings" class="text-sm font-semibold text-blue-600 hover:text-blue-700">View All</a>
->>>>>>> 54b78352b6a223ad79d6f92be5789c5381f09954
                 </div>
                 <div class="p-0 overflow-x-auto">
                     <table class="w-full text-left">
                         <thead>
                             <tr class="bg-slate-50/50">
-<<<<<<< HEAD
                                 <th
                                     class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider"
                                     >Item Name</th
@@ -156,33 +148,6 @@
                                     No recent items to display.
                                 </td>
                             </tr>
-=======
-                                <th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Equipment</th>
-                                <th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Borrower</th>
-                                <th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 italic text-slate-400 text-sm">
-                            {#each recent_borrowings as borrowing}
-                                <tr class="hover:bg-slate-50/50 transition-colors not-italic text-slate-600">
-                                    <td class="px-6 py-4 font-bold text-slate-900">{borrowing.item.name}</td>
-                                    <td class="px-6 py-4">{borrowing.user.name}</td>
-                                    <td class="px-6 py-4 text-right">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase
-                                            {borrowing.status === 'borrowed' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}">
-                                            {borrowing.status}
-                                        </span>
-                                    </td>
-                                </tr>
-                            {/each}
-                            {#if recent_borrowings.length === 0}
-                                <tr>
-                                    <td colspan="3" class="px-6 py-8 text-center bg-slate-50/30">
-                                        No recent borrowings to display.
-                                    </td>
-                                </tr>
-                            {/if}
->>>>>>> 54b78352b6a223ad79d6f92be5789c5381f09954
                         </tbody>
                     </table>
                 </div>

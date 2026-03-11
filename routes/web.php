@@ -4,20 +4,18 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\MaintenanceController;
 use App\Models\Item;
 use App\Models\Category;
 
 Route::get('/', function () {
     return Inertia::render('Dashboard', [
-    'stats' => [
-    'total_items' => Item::count(),
-    'low_stock' => Item::whereColumn('quantity', '<=', 'min_stock_level')->count(),
-    'total_categories' => Category::count(),
-    ],
-    'recent_borrowings' => \App\Models\Borrowing::with(['item', 'user'])
-    ->latest('borrowed_at')
-    ->take(5)
-    ->get()
+        'stats' => [
+            'total_items' => Item::count(),
+            'low_stock' => Item::whereColumn('quantity', '<=', 'min_stock_level')->count(),
+            'total_categories' => Category::count(),
+            'in_maintenance' => Item::where('status', 'in_maintenance')->count(),
+        ]
     ]);
 })->name('dashboard');
 
