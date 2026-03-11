@@ -14,8 +14,18 @@ class InventoryController extends Controller
     public function index()
     {
         return Inertia::render('Inventory/Index', [
-            'items' => Item::with('category')->get(),
+            'items' => Item::with('category')->get()->map(function($item) {
+                // Append is_rarely_used for the frontend
+                $item->is_rarely_used = $item->is_rarely_used;
+                return $item;
+            }),
             'categories' => Category::all(),
+            'stats' => [
+                'total' => Item::count(),
+                'active' => Item::active()->count(),
+                'inactive' => Item::where('is_active', false)->count(),
+                'rarely_used' => Item::all()->filter->is_rarely_used->count(),
+            ]
         ]);
     }
 
@@ -28,6 +38,7 @@ class InventoryController extends Controller
             'quantity' => 'required|integer|min:0',
             'unit' => 'required|string',
             'min_stock_level' => 'required|integer|min:0',
+            'is_active' => 'boolean',
         ]);
 
         DB::transaction(function () use ($validated) {
@@ -55,6 +66,7 @@ class InventoryController extends Controller
             'sku' => 'nullable|string|unique:items,sku,' . $item->id,
             'unit' => 'required|string',
             'min_stock_level' => 'required|integer|min:0',
+            'is_active' => 'required|boolean',
         ]);
 
         $item->update($validated);

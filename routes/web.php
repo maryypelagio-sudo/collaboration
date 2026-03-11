@@ -13,6 +13,10 @@ Route::get('/', function () {
             'total_items' => Item::count(),
             'low_stock' => Item::whereColumn('quantity', '<=', 'min_stock_level')->count(),
             'total_categories' => Category::count(),
+            'total' => Item::count(),
+            'active' => Item::where('is_active', true)->count(),
+            'inactive' => Item::where('is_active', false)->count(),
+            'rarely_used' => Item::all()->filter->is_rarely_used->count(),
         ]
     ]);
 })->name('dashboard');
