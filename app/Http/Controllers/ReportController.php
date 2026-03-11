@@ -40,6 +40,12 @@ class ReportController extends Controller
             'categories' => $categories,
             'stats' => $stats,
             'generated_at' => now()->format('Y-m-d H:i:s'),
+            'summary' => [
+                'total_stock' => $items->sum('quantity'),
+                'healthy_items' => $items->filter(function($item) { return $item->quantity > $item->min_stock_level; })->count(),
+                'need_attention' => $items->filter(function($item) { return $item->quantity <= $item->min_stock_level && $item->quantity > 0; })->count(),
+                'out_of_stock' => $items->filter(function($item) { return $item->quantity <= 0; })->count(),
+            ],
         ]);
 
         // Download the PDF
