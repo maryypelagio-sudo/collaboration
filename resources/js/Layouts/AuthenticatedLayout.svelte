@@ -14,6 +14,8 @@
         { name: 'Inventory', icon: Package, path: '/inventory' },
         { name: 'Borrowings', icon: ChevronRight, path: '/borrowings' },
     ];
+
+    $: inventoryStats = $page.props.stats || {};
 </script>
 
 <div class="min-h-screen bg-[#F8FAFC]">
@@ -62,13 +64,40 @@
                             class="flex-shrink-0 {$page.url === link.path ? 'text-blue-600' : 'group-hover:text-slate-800'}"
                         />
                         {#if isSidebarOpen}
-                            <span class="font-medium text-sm">{link.name}</span>
+                            <div class="flex-1 flex items-center justify-between">
+                                <span class="font-medium text-sm">{link.name}</span>
+                                {#if link.name === 'Inventory' && inventoryStats.rarely_used > 0}
+                                    <span class="px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-lg animate-pulse">
+                                        {inventoryStats.rarely_used}
+                                    </span>
+                                {/if}
+                            </div>
                         {/if}
                         {#if $page.url === link.path && isSidebarOpen}
                             <ChevronRight size={14} class="ml-auto" />
                         {/if}
                     </a>
                 {/each}
+
+                {#if isSidebarOpen}
+                    <div class="mt-8 px-3">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">Filters</p>
+                        <div class="space-y-1">
+                            <a href="/inventory?status=active" class="flex items-center gap-3 p-2.5 px-3 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-emerald-600 transition-all text-xs font-semibold">
+                                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                Active Items
+                            </a>
+                            <a href="/inventory?status=inactive" class="flex items-center gap-3 p-2.5 px-3 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all text-xs font-semibold">
+                                <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                                Inactive Items
+                            </a>
+                            <a href="/inventory?status=rarely_used" class="flex items-center gap-3 p-2.5 px-3 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-amber-600 transition-all text-xs font-semibold">
+                                <div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                                Rarely Used
+                            </a>
+                        </div>
+                    </div>
+                {/if}
             </nav>
 
             <!-- Bottom Section -->
