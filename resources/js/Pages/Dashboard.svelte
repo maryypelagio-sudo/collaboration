@@ -1,37 +1,69 @@
 <script>
-    import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.svelte';
-    import { Package, AlertTriangle, ArrowUpRight, ArrowDownRight, Layers, AlertCircle } from 'lucide-svelte';
+    import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.svelte";
+    import {
+        Package,
+        AlertTriangle,
+        ArrowUpRight,
+        ArrowDownRight,
+        Layers,
+    } from "lucide-svelte";
 
     export let auth = {};
     export let stats = {
         total_items: 0,
         low_stock: 0,
         total_categories: 0,
-        in_maintenance: 0
     };
-    export let recent_items = [];
-
     $: displayStats = [
-        { name: 'Total Items', value: stats.total_items, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { name: 'Low Stock', value: stats.low_stock, icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
-        { name: 'In Maintenance', value: stats.in_maintenance, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
-        { name: 'Categories', value: stats.total_categories, icon: Layers, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        {
+            name: "Total Items",
+            value: stats.total_items,
+            icon: Package,
+            color: "text-blue-600",
+            bg: "bg-blue-50",
+        },
+        {
+            name: "Low Stock",
+            value: stats.low_stock,
+            icon: AlertTriangle,
+            color: "text-amber-600",
+            bg: "bg-amber-50",
+        },
+        {
+            name: "Categories",
+            value: stats.total_categories,
+            icon: Layers,
+            color: "text-indigo-600",
+            bg: "bg-indigo-50",
+        },
     ];
 </script>
 
 <AuthenticatedLayout>
     <div class="space-y-8">
         <!-- Welcome Section -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        >
             <div>
-                <h1 class="text-2xl font-bold text-slate-900">Dashboard Overview</h1>
-                <p class="text-slate-500 mt-1">Welcome back, {auth.user?.name || 'Administrator'}. Here's what's happening today.</p>
+                <h1 class="text-2xl font-bold text-slate-900">
+                    Dashboard Overview
+                </h1>
+                <p class="text-slate-500 mt-1">
+                    Welcome back, {auth.user?.name || "Administrator"}. Here's
+                    what's happening today.
+                </p>
             </div>
             <div class="flex items-center gap-3">
-                <button class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium text-sm hover:bg-slate-50 transition-colors shadow-sm">
+                <a
+                    href="/report"
+                    class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium text-sm hover:bg-slate-50 transition-colors shadow-sm"
+                >
                     Generate Report
-                </button>
-                <button class="px-4 py-2 bg-blue-600 text-white rounded-xl font-medium text-sm hover:bg-blue-700 transition-colors shadow-md">
+                </a>
+                <button
+                    class="px-4 py-2 bg-blue-600 text-white rounded-xl font-medium text-sm hover:bg-blue-700 transition-colors shadow-md"
+                >
                     + Add New Item
                 </button>
             </div>
@@ -40,22 +72,32 @@
         <!-- Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             {#each displayStats as stat}
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                <div
+                    class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
+                >
                     <div class="flex items-start justify-between">
                         <div>
-                            <p class="text-sm font-medium text-slate-500">{stat.name}</p>
-                            <h3 class="text-3xl font-bold text-slate-900 mt-2">{stat.value}</h3>
+                            <p class="text-sm font-medium text-slate-500">
+                                {stat.name}
+                            </p>
+                            <h3 class="text-3xl font-bold text-slate-900 mt-2">
+                                {stat.value}
+                            </h3>
                         </div>
                         <div class="{stat.bg} {stat.color} p-3 rounded-xl">
                             <svelte:component this={stat.icon} size={24} />
                         </div>
                     </div>
                     <div class="mt-4 flex items-center gap-2">
-                        <span class="flex items-center text-emerald-600 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-full">
+                        <span
+                            class="flex items-center text-emerald-600 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-full"
+                        >
                             <ArrowUpRight size={12} class="mr-1" />
                             +0%
                         </span>
-                        <span class="text-slate-400 text-xs italic">from last month</span>
+                        <span class="text-slate-400 text-xs italic"
+                            >from last month</span
+                        >
                     </div>
                 </div>
             {/each}
@@ -63,65 +105,67 @@
 
         <!-- Recent Activity & Charts Placeholder -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-                    <h3 class="font-bold text-slate-800">Recent Borrowings</h3>
-                    <a href="/borrowings" class="text-sm font-semibold text-blue-600 hover:text-blue-700">View All</a>
+            <!-- Recent Items Table Preview -->
+            <div
+                class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+            >
+                <div
+                    class="p-6 border-b border-slate-100 flex items-center justify-between"
+                >
+                    <h3 class="font-bold text-slate-800">Recent Items</h3>
+                    <a
+                        href="/inventory"
+                        class="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                        >View All</a
+                    >
                 </div>
                 <div class="p-0 overflow-x-auto">
                     <table class="w-full text-left">
                         <thead>
                             <tr class="bg-slate-50/50">
-                                <th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Equipment</th>
-                                <th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Borrower</th>
-                                <th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Status</th>
+                                <th
+                                    class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider"
+                                    >Item Name</th
+                                >
+                                <th
+                                    class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider"
+                                    >Status</th
+                                >
+                                <th
+                                    class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right"
+                                    >Stock</th
+                                >
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-sm">
-                            {#if recent_items && recent_items.length > 0}
-                                {#each recent_items as item}
-                                    <tr class="group hover:bg-slate-50/50 transition-colors">
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center gap-4">
-                                                <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 flex-shrink-0">
-                                                    <Package size={20} />
-                                                </div>
-                                                <div>
-                                                    <p class="font-bold text-slate-800 text-sm">{item.name}</p>
-                                                    <p class="text-xs text-slate-400 font-medium">SKU: {item.sku || 'N/A'}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-semibold border border-slate-200">
-                                                {item.category?.name || 'Uncategorized'}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 text-right">
-                                            <div class="flex flex-col items-end">
-                                                <span class="font-bold text-slate-800">{item.quantity}</span>
-                                                <span class="text-[10px] text-slate-400 font-bold uppercase">{item.unit}</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {/each}
-                            {:else}
-                                <tr>
-                                    <td colspan="3" class="px-6 py-8 text-center bg-slate-50/30 italic text-slate-400">
-                                        No recent items to display.
-                                    </td>
-                                </tr>
-                            {/if}
+                        <tbody
+                            class="divide-y divide-slate-100 italic text-slate-400 text-sm"
+                        >
+                            <tr>
+                                <td
+                                    colspan="3"
+                                    class="px-6 py-8 text-center bg-slate-50/30"
+                                >
+                                    No recent items to display.
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
             <!-- Stock Movement Preview -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                <h3 class="font-bold text-slate-800 mb-6">Stock Movement (7 days)</h3>
-                <div class="h-48 bg-slate-50 rounded-xl border border-dashed border-slate-200 flex items-center justify-center">
-                    <p class="text-slate-400 font-medium text-sm">Chart will be displayed here</p>
+            <div
+                class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
+            >
+                <h3 class="font-bold text-slate-800 mb-6">
+                    Stock Movement (7 days)
+                </h3>
+                <div
+                    class="h-48 bg-slate-50 rounded-xl border border-dashed border-slate-200 flex items-center justify-center"
+                >
+                    <p class="text-slate-400 font-medium text-sm">
+                        Chart will be displayed here
+                    </p>
                 </div>
             </div>
         </div>

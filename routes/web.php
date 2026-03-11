@@ -38,8 +38,5 @@ Route::prefix('borrowings')->name('borrowings.')->group(function () {
     Route::post('/{borrowing}/return', [\App\Http\Controllers\BorrowingController::class , 'return'])->name('return');
 });
 
-Route::prefix('maintenance')->name('maintenance.')->group(function () {
-    Route::get('/', [MaintenanceController::class, 'index'])->name('index');
-    Route::post('/', [MaintenanceController::class, 'store'])->name('store');
-    Route::put('/{log}', [MaintenanceController::class, 'update'])->name('update');
-});
+// Include report routes
+require __DIR__.'/report.php';
