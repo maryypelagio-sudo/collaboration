@@ -12,6 +12,7 @@
     const navLinks = [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
         { name: 'Inventory', icon: Package, path: '/inventory' },
+        { name: 'Borrowings', icon: ChevronRight, path: '/borrowings' },
     ];
 
     $: inventoryStats = $page.props.stats || {};
