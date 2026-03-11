@@ -9,8 +9,8 @@
         total_categories: 0,
         in_maintenance: 0
     };
-    export let recent_borrowings = [];
-    
+    export let recent_items = [];
+
     $: displayStats = [
         { name: 'Total Items', value: stats.total_items, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
         { name: 'Low Stock', value: stats.low_stock, icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
@@ -77,23 +77,38 @@
                                 <th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 italic text-slate-400 text-sm">
-                            {#each recent_borrowings as borrowing}
-                                <tr class="hover:bg-slate-50/50 transition-colors not-italic text-slate-600">
-                                    <td class="px-6 py-4 font-bold text-slate-900">{borrowing.item.name}</td>
-                                    <td class="px-6 py-4">{borrowing.user.name}</td>
-                                    <td class="px-6 py-4 text-right">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase
-                                            {borrowing.status === 'borrowed' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}">
-                                            {borrowing.status}
-                                        </span>
-                                    </td>
-                                </tr>
-                            {/each}
-                            {#if recent_borrowings.length === 0}
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            {#if recent_items && recent_items.length > 0}
+                                {#each recent_items as item}
+                                    <tr class="group hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 flex-shrink-0">
+                                                    <Package size={20} />
+                                                </div>
+                                                <div>
+                                                    <p class="font-bold text-slate-800 text-sm">{item.name}</p>
+                                                    <p class="text-xs text-slate-400 font-medium">SKU: {item.sku || 'N/A'}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-semibold border border-slate-200">
+                                                {item.category?.name || 'Uncategorized'}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <div class="flex flex-col items-end">
+                                                <span class="font-bold text-slate-800">{item.quantity}</span>
+                                                <span class="text-[10px] text-slate-400 font-bold uppercase">{item.unit}</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {/each}
+                            {:else}
                                 <tr>
-                                    <td colspan="3" class="px-6 py-8 text-center bg-slate-50/30">
-                                        No recent borrowings to display.
+                                    <td colspan="3" class="px-6 py-8 text-center bg-slate-50/30 italic text-slate-400">
+                                        No recent items to display.
                                     </td>
                                 </tr>
                             {/if}
