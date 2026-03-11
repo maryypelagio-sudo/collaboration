@@ -29,3 +29,6 @@ Route::prefix('inventory')->name('inventory.')->group(function () {
     Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 });
+
+// Include report routes
+require __DIR__.'/report.php';
