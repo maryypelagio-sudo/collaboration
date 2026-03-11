@@ -14,11 +14,7 @@ class InventoryController extends Controller
     public function index()
     {
         return Inertia::render('Inventory/Index', [
-            'items' => Item::with('category')->get()->map(function($item) {
-                // Append is_rarely_used for the frontend
-                $item->is_rarely_used = $item->is_rarely_used;
-                return $item;
-            }),
+            'items' => Item::with('category')->get(),
             'categories' => Category::all(),
             'stats' => [
                 'total' => Item::count(),

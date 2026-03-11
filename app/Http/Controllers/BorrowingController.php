@@ -14,8 +14,8 @@ class BorrowingController extends Controller
     {
         return Inertia::render('Borrowings/Index', [
             'borrowings' => Borrowing::with(['item', 'user'])
-            ->orderBy('borrowed_at', 'desc')
-            ->get(),
+                ->orderBy('borrowed_at', 'desc')
+                ->get(),
             'items' => Item::where('quantity', '>', 0)->get()
         ]);
     }
@@ -36,7 +36,7 @@ class BorrowingController extends Controller
 
         Borrowing::create([
             'item_id' => $validated['item_id'],
-            'user_id' => 1, // Defaulting to user 1 since auth is not fully set up
+            'user_id' => Auth::id() ?? (\App\Models\User::first()?->id ?? 1), // Fallback to first user or ID 1
             'quantity' => $validated['quantity'],
             'notes' => $validated['notes'],
             'borrowed_at' => now(),
@@ -48,7 +48,7 @@ class BorrowingController extends Controller
         return redirect()->back()->with('success', 'Equipment borrowed successfully.');
     }
 
-    public function return (Borrowing $borrowing)
+    public function return(Borrowing $borrowing)
     {
         if ($borrowing->status === 'returned') {
             return back()->withErrors(['status' => 'Item already returned.']);

@@ -19,13 +19,29 @@
     export let items = [];
     export let categories = [];
     export let success = null;
+    let selectedStatus = 'all';
 
     let searchQuery = '';
+    
+    onMount(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const search = urlParams.get('search');
+        if (search) {
+            searchQuery = search;
+        }
+    });
 
-    $: filteredItems = items.filter(item =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.sku?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    $: filteredItems = items.filter(item => {
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            item.sku?.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        const matchesStatus = selectedStatus === 'all' || 
+                            (selectedStatus === 'active' && item.is_active) ||
+                            (selectedStatus === 'inactive' && !item.is_active) ||
+                            (selectedStatus === 'rarely_used' && item.is_rarely_used);
+        
+        return matchesSearch && matchesStatus;
+    });
 
     const getStatusColor = (quantity, min) => {
         if (quantity <= 0) return 'bg-rose-100 text-rose-700 border-rose-200';
@@ -34,8 +50,8 @@
     };
 
     const getStatusText = (item) => {
-        if (item.status === 'damaged') return 'Damaged';
-        if (item.status === 'in_maintenance') return 'In Maintenance';
+        if (item.current_maintenance) return 'In Maintenance';
+        if (item.is_borrowed) return 'Borrowed';
         
         if (item.quantity <= 0) return 'Out of Stock';
         if (item.quantity <= item.min_stock_level) return 'Low Stock';
@@ -96,6 +112,7 @@
         $itemForm.quantity = item.quantity;
         $itemForm.unit = item.unit;
         $itemForm.min_stock_level = item.min_stock_level;
+        $itemForm.is_active = item.is_active;
         $itemForm.clearErrors();
         showItemModal = true;
     }
@@ -275,7 +292,7 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <span class="px-3 py-1 border rounded-full text-[10px] font-bold uppercase tracking-wide {getStatusColor(item)}">
+                                    <span class="px-3 py-1 border rounded-full text-[10px] font-bold uppercase tracking-wide {getStatusColor(item.quantity, item.min_stock_level)}">
                                         {getStatusText(item)}
                                     </span>
                                 </td>

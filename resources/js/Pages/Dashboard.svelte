@@ -6,6 +6,8 @@
         ArrowUpRight,
         ArrowDownRight,
         Layers,
+        HandHelping,
+        Wrench,
     } from "lucide-svelte";
 
     export let auth = {};
@@ -13,7 +15,10 @@
         total_items: 0,
         low_stock: 0,
         total_categories: 0,
+        active_borrowings: 0,
+        pending_maintenance: 0,
     };
+    export let recent_items = [];
     $: displayStats = [
         {
             name: "Total Items",
@@ -35,6 +40,22 @@
             icon: Layers,
             color: "text-indigo-600",
             bg: "bg-indigo-50",
+        },
+        {
+            name: "Borrowed",
+            value: stats.active_borrowings,
+            icon: HandHelping,
+            color: "text-rose-600",
+            bg: "bg-rose-50",
+            link: "/borrowings",
+        },
+        {
+            name: "Maintenance",
+            value: stats.pending_maintenance,
+            icon: Wrench,
+            color: "text-slate-600",
+            bg: "bg-slate-50",
+            link: "/maintenance",
         },
     ];
 </script>
@@ -72,8 +93,9 @@
         <!-- Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             {#each displayStats as stat}
-                <div
-                    class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
+                <a
+                    href={stat.link || "#"}
+                    class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 block"
                 >
                     <div class="flex items-start justify-between">
                         <div>
@@ -88,18 +110,7 @@
                             <svelte:component this={stat.icon} size={24} />
                         </div>
                     </div>
-                    <div class="mt-4 flex items-center gap-2">
-                        <span
-                            class="flex items-center text-emerald-600 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-full"
-                        >
-                            <ArrowUpRight size={12} class="mr-1" />
-                            +0%
-                        </span>
-                        <span class="text-slate-400 text-xs italic"
-                            >from last month</span
-                        >
-                    </div>
-                </div>
+                </a>
             {/each}
         </div>
 
@@ -137,17 +148,49 @@
                                 >
                             </tr>
                         </thead>
-                        <tbody
-                            class="divide-y divide-slate-100 italic text-slate-400 text-sm"
-                        >
-                            <tr>
-                                <td
-                                    colspan="3"
-                                    class="px-6 py-8 text-center bg-slate-50/30"
-                                >
-                                    No recent items to display.
-                                </td>
-                            </tr>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            {#if recent_items && recent_items.length > 0}
+                                {#each recent_items as item}
+                                    <tr class="group hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 flex-shrink-0">
+                                                    <Package size={20} />
+                                                </div>
+                                                <div>
+                                                    <p class="font-bold text-slate-800 text-sm">{item.name}</p>
+                                                    <p class="text-xs text-slate-400 font-medium">SKU: {item.sku || 'N/A'}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {#if item.current_maintenance}
+                                                <span class="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold uppercase border border-slate-200">Maintenance</span>
+                                            {:else if item.is_borrowed}
+                                                <span class="px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg text-[10px] font-bold uppercase border border-rose-100">Borrowed</span>
+                                            {:else if item.quantity <= 0}
+                                                <span class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded-lg text-[10px] font-bold uppercase border border-rose-100 italic">Out of Stock</span>
+                                            {:else if item.quantity <= item.min_stock_level}
+                                                <span class="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg text-[10px] font-bold uppercase border border-amber-100">Low Stock</span>
+                                            {:else}
+                                                <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-[10px] font-bold uppercase border border-emerald-100">In Stock</span>
+                                            {/if}
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <div class="flex flex-col items-end">
+                                                <span class="font-bold text-slate-800">{item.quantity}</span>
+                                                <span class="text-[10px] text-slate-400 font-bold uppercase">{item.unit}</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {/each}
+                            {:else}
+                                <tr>
+                                    <td colspan="3" class="px-6 py-8 text-center bg-slate-50/30 italic text-slate-400">
+                                        No recent items to display.
+                                    </td>
+                                </tr>
+                            {/if}
                         </tbody>
                     </table>
                 </div>

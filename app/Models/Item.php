@@ -19,10 +19,17 @@ class Item extends Model
         'min_stock_level',
         'image_path',
         'status',
+        'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+    ];
+
+    protected $appends = [
+        'is_borrowed',
+        'current_maintenance',
+        'is_rarely_used',
     ];
 
     public function scopeActive($query)
@@ -55,5 +62,20 @@ class Item extends Model
     public function maintenanceLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(MaintenanceLog::class);
+    }
+
+    public function activeBorrowings(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Borrowing::class)->where('status', 'borrowed');
+    }
+
+    public function getCurrentMaintenanceAttribute()
+    {
+        return $this->maintenanceLogs()->whereIn('status', ['pending', 'in_progress'])->first();
+    }
+
+    public function getIsBorrowedAttribute()
+    {
+        return $this->activeBorrowings()->exists();
     }
 }

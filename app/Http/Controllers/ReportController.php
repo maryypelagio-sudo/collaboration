@@ -27,11 +27,13 @@ class ReportController extends Controller
         // Fetch inventory data
         $items = Item::with('category')->get();
         $categories = Category::withCount('items')->get();
-        
+
         $stats = [
             'total_items' => Item::count(),
             'total_categories' => Category::count(),
             'low_stock' => Item::whereColumn('quantity', '<=', 'min_stock_level')->count(),
+            'active_borrowings' => \App\Models\Borrowing::where('status', 'borrowed')->count(),
+            'pending_maintenance' => \App\Models\MaintenanceLog::whereIn('status', ['pending', 'in_progress'])->count(),
         ];
 
         // Generate PDF with the data
@@ -42,9 +44,12 @@ class ReportController extends Controller
             'generated_at' => now()->format('Y-m-d H:i:s'),
             'summary' => [
                 'total_stock' => $items->sum('quantity'),
-                'healthy_items' => $items->filter(function($item) { return $item->quantity > $item->min_stock_level; })->count(),
-                'need_attention' => $items->filter(function($item) { return $item->quantity <= $item->min_stock_level && $item->quantity > 0; })->count(),
-                'out_of_stock' => $items->filter(function($item) { return $item->quantity <= 0; })->count(),
+                'healthy_items' => $items->filter(function ($item) {
+                    return $item->quantity > $item->min_stock_level; })->count(),
+                'need_attention' => $items->filter(function ($item) {
+                    return $item->quantity <= $item->min_stock_level && $item->quantity > 0; })->count(),
+                'out_of_stock' => $items->filter(function ($item) {
+                    return $item->quantity <= 0; })->count(),
             ],
         ]);
 

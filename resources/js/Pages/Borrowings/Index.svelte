@@ -80,7 +80,7 @@
                                             <Package size={20} />
                                         </div>
                                         <div>
-                                            <div class="font-bold text-slate-900">{borrowing.item.name}</div>
+                                            <a href="/inventory?search={borrowing.item.name}" class="font-bold text-slate-900 hover:text-blue-600 transition-colors">{borrowing.item.name}</a>
                                             <div class="text-xs text-slate-500">Qty: {borrowing.quantity}</div>
                                         </div>
                                     </div>

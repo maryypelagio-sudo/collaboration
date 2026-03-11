@@ -52,7 +52,7 @@
             <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
                 {#each navLinks as link}
                     <a
-                        href={(($page.props?.app_url) || '') + link.path}
+                        href={link.path}
                         class="flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group
                         {$page.url === link.path
                             ? 'bg-blue-50 text-blue-600'
