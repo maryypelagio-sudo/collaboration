@@ -18,6 +18,7 @@ class Item extends Model
         'unit',
         'min_stock_level',
         'image_path',
+        'status',
     ];
 
     public function category(): \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -28,5 +29,10 @@ class Item extends Model
     public function stockLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(StockLog::class);
+    }
+
+    public function maintenanceLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(MaintenanceLog::class);
     }
 }
