@@ -13,7 +13,8 @@ Route::get('/', function () {
             'total_items' => Item::count(),
             'low_stock' => Item::whereColumn('quantity', '<=', 'min_stock_level')->count(),
             'total_categories' => Category::count(),
-        ]
+        ],
+        'recent_items' => Item::with('category')->latest()->take(6)->get(),
     ]);
 })->name('dashboard');
 
