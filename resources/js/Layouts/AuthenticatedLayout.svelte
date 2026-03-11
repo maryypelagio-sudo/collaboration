@@ -1,6 +1,6 @@
 <script>
     import { page } from '@inertiajs/svelte';
-    import { LayoutDashboard, Package, LogOut, Menu, X, ChevronRight } from 'lucide-svelte';
+    import { LayoutDashboard, Package, Wrench, LogOut, Menu, X, ChevronRight } from 'lucide-svelte';
     import { onMount } from 'svelte';
 
     let isSidebarOpen = true;
@@ -12,7 +12,7 @@
     const navLinks = [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
         { name: 'Inventory', icon: Package, path: '/inventory' },
-        { name: 'Borrowings', icon: ChevronRight, path: '/borrowings' },
+        { name: 'Maintenance', icon: Wrench, path: '/maintenance' },
     ];
 
     $: inventoryStats = $page.props.stats || {};

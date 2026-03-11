@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\MaintenanceController;
 use App\Models\Item;
 use App\Models\Category;
 
@@ -13,10 +14,7 @@ Route::get('/', function () {
             'total_items' => Item::count(),
             'low_stock' => Item::whereColumn('quantity', '<=', 'min_stock_level')->count(),
             'total_categories' => Category::count(),
-            'total' => Item::count(),
-            'active' => Item::where('is_active', true)->count(),
-            'inactive' => Item::where('is_active', false)->count(),
-            'rarely_used' => Item::all()->filter->is_rarely_used->count(),
+            'in_maintenance' => Item::where('status', 'in_maintenance')->count(),
         ]
     ]);
 })->name('dashboard');
@@ -38,4 +36,10 @@ Route::prefix('borrowings')->name('borrowings.')->group(function () {
     Route::get('/', [\App\Http\Controllers\BorrowingController::class , 'index'])->name('index');
     Route::post('/', [\App\Http\Controllers\BorrowingController::class , 'store'])->name('store');
     Route::post('/{borrowing}/return', [\App\Http\Controllers\BorrowingController::class , 'return'])->name('return');
+});
+
+Route::prefix('maintenance')->name('maintenance.')->group(function () {
+    Route::get('/', [MaintenanceController::class, 'index'])->name('index');
+    Route::post('/', [MaintenanceController::class, 'store'])->name('store');
+    Route::put('/{log}', [MaintenanceController::class, 'update'])->name('update');
 });

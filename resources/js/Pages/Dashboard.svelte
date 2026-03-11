@@ -1,18 +1,20 @@
 <script>
     import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.svelte';
-    import { Package, AlertTriangle, ArrowUpRight, ArrowDownRight, Layers } from 'lucide-svelte';
+    import { Package, AlertTriangle, ArrowUpRight, ArrowDownRight, Layers, AlertCircle } from 'lucide-svelte';
 
     export let auth = {};
     export let stats = {
         total_items: 0,
         low_stock: 0,
-        total_categories: 0
+        total_categories: 0,
+        in_maintenance: 0
     };
     export let recent_borrowings = [];
     
     $: displayStats = [
         { name: 'Total Items', value: stats.total_items, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
         { name: 'Low Stock', value: stats.low_stock, icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { name: 'In Maintenance', value: stats.in_maintenance, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
         { name: 'Categories', value: stats.total_categories, icon: Layers, color: 'text-indigo-600', bg: 'bg-indigo-50' },
     ];
 </script>
