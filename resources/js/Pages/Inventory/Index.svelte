@@ -1,6 +1,6 @@
 <script>
     import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.svelte';
-    import { router, useForm } from '@inertiajs/svelte';
+    import { router, useForm, page } from '@inertiajs/svelte';
     import { 
         Plus, 
         Search, 
@@ -20,10 +20,22 @@
 
     let searchQuery = '';
     
-    $: filteredItems = items.filter(item => 
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.sku?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    $: filter = $page.url.includes('filter=damaged') ? 'damaged' : ($page.url.includes('filter=active') ? 'active' : 'all');
+    
+    $: filteredItems = items.filter(item => {
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            item.sku?.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        if (filter === 'damaged') {
+            return matchesSearch && item.damaged_quantity > 0;
+        }
+
+        if (filter === 'active') {
+            return matchesSearch && item.active_quantity > 0;
+        }
+        
+        return matchesSearch;
+    });
 
     const getStatusColor = (quantity, min) => {
         if (quantity <= 0) return 'bg-rose-100 text-rose-700 border-rose-200';
@@ -50,6 +62,7 @@
         name: '',
         sku: '',
         quantity: 0,
+        damaged_quantity: 0,
         unit: 'pcs',
         min_stock_level: 5,
     });
@@ -81,6 +94,7 @@
         $itemForm.name = item.name;
         $itemForm.sku = item.sku;
         $itemForm.quantity = item.quantity;
+        $itemForm.damaged_quantity = item.damaged_quantity;
         $itemForm.unit = item.unit;
         $itemForm.min_stock_level = item.min_stock_level;
         $itemForm.clearErrors();
@@ -196,7 +210,9 @@
                             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Item Details</th>
                             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Category</th>
                             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Status</th>
-                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Quantity</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Available</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Active</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Damaged</th>
                             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                         </tr>
                     </thead>
@@ -227,6 +243,18 @@
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex flex-col items-end">
                                         <span class="font-bold text-slate-800">{item.quantity}</span>
+                                        <span class="text-[10px] text-slate-400 font-bold uppercase">{item.unit}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex flex-col items-end">
+                                        <span class="font-bold {item.active_quantity > 0 ? 'text-blue-600' : 'text-slate-400'}">{item.active_quantity}</span>
+                                        <span class="text-[10px] text-slate-400 font-bold uppercase">{item.unit}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex flex-col items-end">
+                                        <span class="font-bold {item.damaged_quantity > 0 ? 'text-rose-600' : 'text-slate-400'}">{item.damaged_quantity}</span>
                                         <span class="text-[10px] text-slate-400 font-bold uppercase">{item.unit}</span>
                                     </div>
                                 </td>
@@ -323,12 +351,29 @@
 
                     <div class="grid grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Quantity</label>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Available</label>
                             <input type="number" bind:value={$itemForm.quantity} min="0" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
                             {#if $itemForm.errors?.quantity}
                                 <p class="text-xs text-rose-500 mt-1">{$itemForm.errors.quantity}</p>
                             {/if}
                         </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Active</label>
+                            <input type="number" bind:value={$itemForm.active_quantity} min="0" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                            {#if $itemForm.errors?.active_quantity}
+                                <p class="text-xs text-rose-500 mt-1">{$itemForm.errors.active_quantity}</p>
+                            {/if}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Damaged</label>
+                            <input type="number" bind:value={$itemForm.damaged_quantity} min="0" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                            {#if $itemForm.errors?.damaged_quantity}
+                                <p class="text-xs text-rose-500 mt-1">{$itemForm.errors.damaged_quantity}</p>
+                            {/if}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Unit</label>
                             <input type="text" bind:value={$itemForm.unit} placeholder="pcs, kg, etc." class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required/>
@@ -411,9 +456,13 @@
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Adjustment Type</label>
                         <select bind:value={$adjustForm.type} class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white" required>
-                            <option value="in">Add Stock (In)</option>
-                            <option value="out">Remove Stock (Out)</option>
-                            <option value="adjustment">Set Exact Count</option>
+                            <option value="in">Add to Available</option>
+                            <option value="out">Remove from Available</option>
+                            <option value="active_in">Move to Active (In Use)</option>
+                            <option value="active_out">Return to Available</option>
+                            <option value="damaged_in">Move to Damaged (Guba)</option>
+                            <option value="damaged_out">Remove Damaged Item</option>
+                            <option value="adjustment">Set Exact Available Count</option>
                         </select>
                     </div>
                     <div>

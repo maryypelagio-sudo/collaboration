@@ -12,6 +12,8 @@
     const navLinks = [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
         { name: 'Inventory', icon: Package, path: '/inventory' },
+        { name: 'Active Items', icon: Package, path: '/inventory?filter=active' },
+        { name: 'Damaged Items', icon: X, path: '/inventory?filter=damaged' },
     ];
 </script>
 

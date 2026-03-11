@@ -7,6 +7,17 @@ use App\Http\Controllers\CategoryController;
 use App\Models\Item;
 use App\Models\Category;
 
+use Illuminate\Support\Facades\Artisan;
+
+Route::get('/migrate', function () {
+    try {
+        Artisan::call('migrate', ['--force' => true]);
+        return 'Migrations completed successfully! <a href="/">Return to Dashboard</a>';
+    } catch (\Exception $e) {
+        return 'Error running migrations: ' . $e->getMessage();
+    }
+});
+
 Route::get('/', function () {
     return Inertia::render('Dashboard', [
         'stats' => [

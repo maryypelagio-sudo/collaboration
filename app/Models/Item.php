@@ -15,6 +15,8 @@ class Item extends Model
         'name',
         'sku',
         'quantity',
+        'active_quantity',
+        'damaged_quantity',
         'unit',
         'min_stock_level',
         'image_path',
