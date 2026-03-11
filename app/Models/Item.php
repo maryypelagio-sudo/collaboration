@@ -21,6 +21,27 @@ class Item extends Model
         'status',
     ];
 
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function lastActivityDate()
+    {
+        $lastLog = $this->stockLogs()->latest()->first();
+        return $lastLog instanceof \App\Models\StockLog ? $lastLog->created_at : $this->created_at;
+    }
+
+    public function getIsRarelyUsedAttribute()
+    {
+        // For demonstration, let's say 30 days of inactivity
+        return $this->lastActivityDate()->diffInDays(now()) > 30;
+    }
+
     public function category(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Category::class);

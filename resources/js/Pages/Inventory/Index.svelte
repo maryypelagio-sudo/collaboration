@@ -14,6 +14,7 @@
         Layers,
         AlertCircle
     } from 'lucide-svelte';
+    import { onMount } from 'svelte';
 
     export let items = [];
     export let categories = [];
@@ -21,10 +22,18 @@
 
     let searchQuery = '';
     
-    $: filteredItems = items.filter(item => 
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.sku?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    $: filteredItems = items.filter(item => {
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            item.sku?.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        if (selectedStatus === 'active') return matchesSearch && item.is_active;
+        if (selectedStatus === 'inactive') return matchesSearch && !item.is_active;
+        if (selectedStatus === 'rarely_used') return matchesSearch && item.is_rarely_used;
+        
+        return matchesSearch;
+    });
+
+    let selectedStatus = 'all';
 
     const getStatusColor = (item) => {
         if (item.status === 'damaged') return 'bg-rose-100 text-rose-700 border-rose-200';
@@ -61,6 +70,7 @@
         quantity: 0,
         unit: 'pcs',
         min_stock_level: 5,
+        is_active: true,
     });
 
     const categoryForm = useForm({
@@ -214,6 +224,34 @@
             </button>
         </div>
 
+        <!-- Status Filters -->
+        <div class="flex flex-wrap gap-2">
+            <button 
+                on:click={() => selectedStatus = 'all'}
+                class="px-4 py-2 rounded-xl text-sm font-bold transition-all {selectedStatus === 'all' ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}"
+            >
+                All Items
+            </button>
+            <button 
+                on:click={() => selectedStatus = 'active'}
+                class="px-4 py-2 rounded-xl text-sm font-bold transition-all {selectedStatus === 'active' ? 'bg-emerald-600 text-white shadow-md' : 'bg-white text-emerald-600 border border-emerald-200 hover:bg-emerald-50'}"
+            >
+                Active
+            </button>
+            <button 
+                on:click={() => selectedStatus = 'inactive'}
+                class="px-4 py-2 rounded-xl text-sm font-bold transition-all {selectedStatus === 'inactive' ? 'bg-slate-500 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'}"
+            >
+                Inactive
+            </button>
+            <button 
+                on:click={() => selectedStatus = 'rarely_used'}
+                class="px-4 py-2 rounded-xl text-sm font-bold transition-all {selectedStatus === 'rarely_used' ? 'bg-amber-500 text-white shadow-md' : 'bg-white text-amber-600 border border-amber-200 hover:bg-amber-50'}"
+            >
+                Rarely Used
+            </button>
+        </div>
+
         <!-- Inventory Table -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden z-0">
             <div class="overflow-x-auto">
@@ -223,6 +261,7 @@
                             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Item Details</th>
                             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Category</th>
                             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Status</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Activity</th>
                             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Quantity</th>
                             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                         </tr>
@@ -250,6 +289,16 @@
                                     <span class="px-3 py-1 border rounded-full text-[10px] font-bold uppercase tracking-wide {getStatusColor(item)}">
                                         {getStatusText(item)}
                                     </span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    {#if item.is_active}
+                                        <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold">ACTIVE</span>
+                                    {:else}
+                                        <span class="px-2 py-1 bg-slate-100 text-slate-500 rounded text-[10px] font-bold">INACTIVE</span>
+                                    {/if}
+                                    {#if item.is_rarely_used}
+                                        <span class="ml-1 px-2 py-1 bg-amber-100 text-amber-700 rounded text-[10px] font-bold">RARELY USED</span>
+                                    {/if}
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex flex-col items-end">
@@ -376,6 +425,13 @@
                             {#if $itemForm.errors?.min_stock_level}
                                 <p class="text-xs text-rose-500 mt-1">{$itemForm.errors.min_stock_level}</p>
                             {/if}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-4">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="is_active" bind:checked={$itemForm.is_active} class="w-5 h-5 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"/>
+                            <label for="is_active" class="text-sm font-bold text-slate-700 cursor-pointer">Mark as Active Item</label>
                         </div>
                     </div>
 
