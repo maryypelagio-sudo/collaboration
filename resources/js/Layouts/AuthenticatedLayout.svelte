@@ -95,6 +95,10 @@
                                 <div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
                                 Rarely Used
                             </a>
+                            <a href="/inventory?status=archived" class="flex items-center gap-3 p-2.5 px-3 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-rose-600 transition-all text-xs font-semibold">
+                                <div class="w-1.5 h-1.5 rounded-full bg-rose-500"></div>
+                                Archive Equipment
+                            </a>
                         </div>
                     </div>
                 {/if}

@@ -20,10 +20,13 @@ class Item extends Model
         'image_path',
         'status',
         'is_active',
+        'archive_reason',
+        'archived_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'archived_at' => 'datetime',
     ];
 
     protected $appends = [

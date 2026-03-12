@@ -31,6 +31,8 @@ Route::prefix('inventory')->name('inventory.')->group(function () {
     Route::put('/items/{item}', [InventoryController::class, 'update'])->name('items.update');
     Route::delete('/items/{item}', [InventoryController::class, 'destroy'])->name('items.destroy');
     Route::post('/items/{item}/adjust', [InventoryController::class, 'adjustStock'])->name('items.adjust');
+    Route::post('/items/{item}/archive', [InventoryController::class, 'archive'])->name('items.archive');
+    Route::post('/items/{item}/restore', [InventoryController::class, 'restore'])->name('items.restore');
 
     // Category Routes
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
