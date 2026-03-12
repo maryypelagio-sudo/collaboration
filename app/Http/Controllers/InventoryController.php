@@ -63,9 +63,35 @@ class InventoryController extends Controller
             'unit' => 'required|string',
             'min_stock_level' => 'required|integer|min:0',
             'is_active' => 'required|boolean',
+            'status' => 'nullable|string|in:available,damaged,in_maintenance',
+            'damage_description' => 'required_if:status,damaged|nullable|string',
         ]);
 
-        $item->update($validated);
+        DB::transaction(function () use ($validated, $item) {
+            $oldStatus = $item->status;
+            $newStatus = $validated['status'] ?? $oldStatus;
+            
+            $item->update($validated);
+
+            if ($oldStatus !== 'damaged' && $newStatus === 'damaged') {
+                // Create maintenance log
+                \App\Models\MaintenanceLog::create([
+                    'item_id' => $item->id,
+                    'reported_by' => auth()->id() ?? 1,
+                    'description' => $validated['damage_description'] ?? 'Marked as damaged from inventory editor.',
+                    'status' => 'pending',
+                ]);
+            } elseif (($oldStatus === 'damaged' || $oldStatus === 'in_maintenance') && $newStatus === 'available') {
+                // Complete any open maintenance logs
+                $item->maintenanceLogs()
+                    ->whereIn('status', ['pending', 'in_progress'])
+                    ->update([
+                        'status' => 'completed',
+                        'completion_date' => now(),
+                        'notes' => ($item->maintenanceLogs()->whereIn('status', ['pending', 'in_progress'])->first()?->notes ?? '') . "\nAutomatically completed via inventory update."
+                    ]);
+            }
+        });
 
         return back()->with('success', 'Item updated successfully.');
     }

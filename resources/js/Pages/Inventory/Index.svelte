@@ -76,6 +76,8 @@
         unit: 'pcs',
         min_stock_level: 5,
         is_active: true,
+        status: 'available',
+        damage_description: '',
     });
 
     const categoryForm = useForm({
@@ -113,6 +115,8 @@
         $itemForm.unit = item.unit;
         $itemForm.min_stock_level = item.min_stock_level;
         $itemForm.is_active = item.is_active;
+        $itemForm.status = item.status || 'available';
+        $itemForm.damage_description = '';
         $itemForm.clearErrors();
         showItemModal = true;
     }
@@ -427,11 +431,41 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-4">
+                    <div class="space-y-4 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-4">
                         <div class="flex items-center gap-2">
                             <input type="checkbox" id="is_active" bind:checked={$itemForm.is_active} class="w-5 h-5 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"/>
                             <label for="is_active" class="text-sm font-bold text-slate-700 cursor-pointer">Mark as Active Item</label>
                         </div>
+                        
+                        {#if isEditMode}
+                            <div class="flex items-center gap-2 pt-2 border-t border-slate-200">
+                                <input 
+                                    type="checkbox" 
+                                    id="is_damaged" 
+                                    checked={$itemForm.status === 'damaged'} 
+                                    on:change={(e) => $itemForm.status = e.target.checked ? 'damaged' : 'available'}
+                                    class="w-5 h-5 rounded-lg border-slate-300 text-rose-600 focus:ring-rose-500 transition-all cursor-pointer"
+                                />
+                                <label for="is_damaged" class="text-sm font-bold text-slate-700 cursor-pointer">Mark as Damaged</label>
+                            </div>
+
+                            {#if $itemForm.status === 'damaged'}
+                                <div class="mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                                    <label for="damage_desc" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Damage Description</label>
+                                    <textarea 
+                                        id="damage_desc"
+                                        bind:value={$itemForm.damage_description} 
+                                        placeholder="Briefly describe the damage..."
+                                        rows="2"
+                                        class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all resize-none shadow-sm"
+                                        required
+                                    ></textarea>
+                                    {#if $itemForm.errors?.damage_description}
+                                        <p class="text-[10px] text-rose-500 mt-1">{$itemForm.errors.damage_description}</p>
+                                    {/if}
+                                </div>
+                            {/if}
+                        {/if}
                     </div>
 
                     <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
