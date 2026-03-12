@@ -11,17 +11,35 @@ use Illuminate\Support\Facades\DB;
 
 class InventoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $status = $request->query('status', 'all');
+
+        $query = Item::with('category');
+
+        if ($status === 'active') {
+            $query->where('is_active', true);
+        } elseif ($status === 'inactive') {
+            $query->where('is_active', false)->whereNull('archived_at');
+        } elseif ($status === 'archived') {
+            $query->where('is_active', false)->whereNotNull('archived_at');
+        } elseif ($status === 'rarely_used') {
+            $query->where('is_active', true);
+        }
+
+        $items = $query->get();
+
         return Inertia::render('Inventory/Index', [
-            'items' => Item::with('category')->get(),
+            'items' => $items,
             'categories' => Category::all(),
             'stats' => [
                 'total' => Item::count(),
                 'active' => Item::active()->count(),
-                'inactive' => Item::where('is_active', false)->count(),
-                'rarely_used' => Item::all()->filter->is_rarely_used->count(),
-            ]
+                'inactive' => Item::where('is_active', false)->whereNull('archived_at')->count(),
+                'archived' => Item::where('is_active', false)->whereNotNull('archived_at')->count(),
+                'rarely_used' => Item::active()->get()->filter->is_rarely_used->count(),
+            ],
+            'status' => $status,
         ]);
     }
 
@@ -74,6 +92,40 @@ class InventoryController extends Controller
     {
         $item->delete();
         return back()->with('success', 'Item deleted successfully.');
+    }
+
+    public function archive(Request $request, Item $item)
+    {
+        $validated = $request->validate([
+            'archive_reason' => 'required|string|max:500',
+        ]);
+
+        if (! $item->is_active) {
+            return back()->with('error', 'Item is already archived.');
+        }
+
+        $item->update([
+            'is_active' => false,
+            'archive_reason' => $validated['archive_reason'],
+            'archived_at' => now(),
+        ]);
+
+        return back()->with('success', 'Item archived successfully.');
+    }
+
+    public function restore(Item $item)
+    {
+        if ($item->is_active) {
+            return back()->with('error', 'Item is already active.');
+        }
+
+        $item->update([
+            'is_active' => true,
+            'archive_reason' => null,
+            'archived_at' => null,
+        ]);
+
+        return back()->with('success', 'Item restored successfully.');
     }
 
     public function adjustStock(Request $request, Item $item)

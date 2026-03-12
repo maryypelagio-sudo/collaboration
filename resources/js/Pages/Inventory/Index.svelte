@@ -19,15 +19,29 @@
     export let items = [];
     export let categories = [];
     export let success = null;
+    export let status = 'all';
     let selectedStatus = 'all';
 
     let searchQuery = '';
+
+    function changeStatus(newStatus) {
+        selectedStatus = newStatus;
+        router.get('/inventory', { status: newStatus }, { preserveState: true, preserveScroll: true });
+    }
     
     onMount(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const search = urlParams.get('search');
+        const statusFromUrl = urlParams.get('status');
+
         if (search) {
             searchQuery = search;
+        }
+
+        if (statusFromUrl) {
+            selectedStatus = statusFromUrl;
+        } else if (status) {
+            selectedStatus = status;
         }
     });
 
@@ -37,7 +51,8 @@
         
         const matchesStatus = selectedStatus === 'all' || 
                             (selectedStatus === 'active' && item.is_active) ||
-                            (selectedStatus === 'inactive' && !item.is_active) ||
+                            (selectedStatus === 'inactive' && !item.is_active && !item.archived_at) ||
+                            (selectedStatus === 'archived' && !item.is_active && item.archived_at) ||
                             (selectedStatus === 'rarely_used' && item.is_rarely_used);
         
         return matchesSearch && matchesStatus;
@@ -64,7 +79,10 @@
     let showCategoryModal = false;
     let showAdjustModal = false;
     let showDamageModal = false;
+    let showArchiveReasonModal = false;
+    let showArchivedItemDetailsModal = false;
     let selectedItem = null;
+    let archiveReasonInput = '';
 
     // Forms
     const itemForm = useForm({
@@ -130,8 +148,50 @@
     }
 
     function deleteItem(id) {
-        if (confirm('Are you sure you want to delete this item?')) {
+        if (confirm('Are you sure you want to permanently delete this item? This action cannot be undone.')) {
             router.delete(`/inventory/items/${id}`);
+        }
+    }
+
+    function archiveItem(item) {
+        selectedItem = item;
+        archiveReasonInput = item.archive_reason || '';
+        showArchiveReasonModal = true;
+    }
+
+    function confirmArchiveItem() {
+        if (!selectedItem) {
+            return;
+        }
+
+        if (!archiveReasonInput.trim()) {
+            alert('Please enter a reason for archiving.');
+            return;
+        }
+
+        router.post(`/inventory/items/${selectedItem.id}/archive`, {
+            archive_reason: archiveReasonInput,
+        }, {
+            onSuccess: () => {
+                showArchiveReasonModal = false;
+                selectedItem = null;
+                archiveReasonInput = '';
+            },
+            preserveScroll: true,
+        });
+    }
+
+    function openArchivedDetails(item) {
+        selectedItem = item;
+        showArchivedItemDetailsModal = true;
+    }
+
+    function restoreItem(id) {
+        if (confirm('Restore this item to active inventory?')) {
+            router.post(`/inventory/items/${id}/restore`, {
+                preserveScroll: true,
+                preserveState: true,
+            });
         }
     }
 
@@ -233,28 +293,34 @@
         <!-- Status Filters -->
         <div class="flex flex-wrap gap-2">
             <button 
-                on:click={() => selectedStatus = 'all'}
+                on:click={() => changeStatus('all')}
                 class="px-4 py-2 rounded-xl text-sm font-bold transition-all {selectedStatus === 'all' ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}"
             >
                 All Items
             </button>
             <button 
-                on:click={() => selectedStatus = 'active'}
+                on:click={() => changeStatus('active')}
                 class="px-4 py-2 rounded-xl text-sm font-bold transition-all {selectedStatus === 'active' ? 'bg-emerald-600 text-white shadow-md' : 'bg-white text-emerald-600 border border-emerald-200 hover:bg-emerald-50'}"
             >
                 Active
             </button>
             <button 
-                on:click={() => selectedStatus = 'inactive'}
+                on:click={() => changeStatus('inactive')}
                 class="px-4 py-2 rounded-xl text-sm font-bold transition-all {selectedStatus === 'inactive' ? 'bg-slate-500 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'}"
             >
                 Inactive
             </button>
             <button 
-                on:click={() => selectedStatus = 'rarely_used'}
+                on:click={() => changeStatus('rarely_used')}
                 class="px-4 py-2 rounded-xl text-sm font-bold transition-all {selectedStatus === 'rarely_used' ? 'bg-amber-500 text-white shadow-md' : 'bg-white text-amber-600 border border-amber-200 hover:bg-amber-50'}"
             >
                 Rarely Used
+            </button>
+            <button 
+                on:click={() => changeStatus('archived')}
+                class="px-4 py-2 rounded-xl text-sm font-bold transition-all {selectedStatus === 'archived' ? 'bg-rose-600 text-white shadow-md' : 'bg-white text-rose-600 border border-rose-200 hover:bg-rose-50'}"
+            >
+                Archive
             </button>
         </div>
 
@@ -324,11 +390,29 @@
                                             class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Item">
                                             <Edit size={18} />
                                         </button>
-                                        <button
-                                            on:click={() => deleteItem(item.id)}
-                                            class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete Item">
-                                            <Trash2 size={18} />
-                                        </button>
+                                        {#if item.is_active}
+                                            <button
+                                                on:click={() => archiveItem(item)}
+                                                class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Archive Item">
+                                                <Layers size={18} />
+                                            </button>
+                                        {:else}
+                                            <button
+                                                on:click={() => openArchivedDetails(item)}
+                                                class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="View Archive Details">
+                                                <Search size={18} />
+                                            </button>
+                                            <button
+                                                on:click={() => restoreItem(item.id)}
+                                                class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Restore Item">
+                                                <ArrowUpDown size={18} />
+                                            </button>
+                                            <button
+                                                on:click={() => deleteItem(item.id)}
+                                                class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete Permanently">
+                                                <Trash2 size={18} />
+                                            </button>
+                                        {/if}
                                     </div>
                                 </td>
                             </tr>
@@ -528,6 +612,75 @@
         </div>
     </div>
     {/if}
+
+    <!-- Archive Reason Modal -->
+    {#if showArchiveReasonModal}
+    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-bold text-lg text-slate-800">Archive Item</h3>
+                <button type="button" on:click={() => { showArchiveReasonModal = false; selectedItem = null; archiveReasonInput = ''; }} class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-50 transition-colors">
+                    <X size={20} />
+                </button>
+            </div>
+            <div class="p-6">
+                <p class="text-sm text-slate-600 mb-4">Provide the reason for archiving <strong>{selectedItem?.name}</strong>.</p>
+                <textarea
+                    bind:value={archiveReasonInput}
+                    rows="4"
+                    class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
+                    placeholder="Reason for archiving"
+                ></textarea>
+            </div>
+            <div class="flex justify-end gap-3 p-4 border-t border-slate-100">
+                <button type="button" on:click={() => { showArchiveReasonModal = false; selectedItem = null; archiveReasonInput = ''; }} class="px-4 py-2 text-slate-600 font-medium hover:bg-slate-50 rounded-xl transition-colors">Cancel</button>
+                <button type="button" on:click={confirmArchiveItem} class="px-4 py-2 bg-rose-600 text-white font-semibold rounded-xl hover:bg-rose-700 transition-all">Archive Item</button>
+            </div>
+        </div>
+    </div>
+    {/if}
+
+    <!-- Archived Item Details Modal -->
+    {#if showArchivedItemDetailsModal && selectedItem}
+    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-bold text-lg text-slate-800">Archived Item Details</h3>
+                <button type="button" on:click={() => { showArchivedItemDetailsModal = false; selectedItem = null; }} class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-50 transition-colors">
+                    <X size={20} />
+                </button>
+            </div>
+            <div class="p-6 space-y-3">
+                <div>
+                    <p class="text-xs uppercase text-slate-400">Name</p>
+                    <p class="font-semibold text-slate-800">{selectedItem.name}</p>
+                </div>
+                <div>
+                    <p class="text-xs uppercase text-slate-400">SKU</p>
+                    <p class="font-semibold text-slate-800">{selectedItem.sku || 'N/A'}</p>
+                </div>
+                <div>
+                    <p class="text-xs uppercase text-slate-400">Category</p>
+                    <p class="font-semibold text-slate-800">{selectedItem.category?.name || 'Uncategorized'}</p>
+                </div>
+                <div>
+                    <p class="text-xs uppercase text-slate-400">Reason for Archive</p>
+                    <p class="font-semibold text-rose-600">{selectedItem.archive_reason || 'No reason provided'}</p>
+                </div>
+                <div>
+                    <p class="text-xs uppercase text-slate-400">Archived at</p>
+                    <p class="font-semibold text-slate-800">{selectedItem.archived_at ? new Date(selectedItem.archived_at).toLocaleString() : 'Not set'}</p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 p-4 border-t border-slate-100">
+                <button type="button" on:click={() => { showArchivedItemDetailsModal = false; selectedItem = null; }} class="px-4 py-2 text-slate-600 font-medium hover:bg-slate-50 rounded-xl transition-colors">Close</button>
+                <button type="button" on:click={() => restoreItem(selectedItem.id)} class="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all">Restore</button>
+                <button type="button" on:click={() => deleteItem(selectedItem.id)} class="px-4 py-2 bg-rose-600 text-white font-semibold rounded-xl hover:bg-rose-700 transition-all">Delete Permanently</button>
+            </div>
+        </div>
+    </div>
+    {/if}
+
     <!-- Report Damage Modal -->
     {#if showDamageModal}
     <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
