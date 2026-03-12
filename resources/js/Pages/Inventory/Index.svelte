@@ -93,6 +93,7 @@
     const damageForm = useForm({
         item_id: null,
         description: '',
+        priority: 'medium',
     });
 
     // Handlers
@@ -544,6 +545,16 @@
                     <p class="font-bold text-slate-800">{selectedItem?.name}</p>
                 </div>
                 <form on:submit|preventDefault={submitReportDamage} class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Priority Level</label>
+                        <select bind:value={$damageForm.priority} class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white" required>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Describe the Issue</label>
                         <textarea 

@@ -22,6 +22,7 @@ class MaintenanceController extends Controller
         $request->validate([
             'item_id' => 'required|exists:items,id',
             'description' => 'required|string',
+            'priority' => 'required|string|in:low,medium,high,urgent',
         ]);
 
         $item = Item::findOrFail($request->item_id);
@@ -30,6 +31,7 @@ class MaintenanceController extends Controller
         MaintenanceLog::create([
             'item_id' => $item->id,
             'reported_by' => auth()->id() ?? 1, // Fallback for dev if no auth
+            'priority' => $request->priority,
             'description' => $request->description,
             'status' => 'pending',
         ]);

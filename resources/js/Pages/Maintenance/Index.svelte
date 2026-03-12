@@ -25,6 +25,13 @@
         cancelled: { label: 'Cancelled', color: 'bg-rose-100 text-rose-700 border-rose-200', icon: XCircle }
     };
 
+    const priorityMap = {
+        low: { label: 'Low', color: 'bg-slate-50 text-slate-600 border-slate-100' },
+        medium: { label: 'Medium', color: 'bg-sky-50 text-sky-600 border-sky-100' },
+        high: { label: 'High', color: 'bg-orange-50 text-orange-600 border-orange-100' },
+        urgent: { label: 'Urgent', color: 'bg-rose-50 text-rose-600 border-rose-100 font-bold' }
+    };
+
     const updateForm = useForm({
         status: '',
         notes: '',
@@ -103,15 +110,22 @@
 
                             <!-- Progress & Status -->
                             <div class="flex flex-row lg:flex-col lg:items-end justify-between items-center gap-4 border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100">
-                                <div class="flex flex-row lg:flex-col items-center lg:items-end gap-3 lg:gap-1">
-                                    <span class="px-3 py-1 border rounded-full text-[10px] font-bold uppercase tracking-wide flex items-center gap-1.5 {statusMap[log.status].color}">
-                                        <svelte:component this={statusMap[log.status].icon} size={12} />
-                                        {statusMap[log.status].label}
-                                    </span>
-                                    {#if log.cost}
-                                        <span class="text-sm font-bold text-slate-900">${log.cost}</span>
-                                    {/if}
-                                </div>
+                                    <div class="flex flex-row lg:flex-col items-center lg:items-end gap-3 lg:gap-1.5">
+                                        <div class="flex items-center gap-2">
+                                            {#if log.priority}
+                                                <span class="px-2 py-0.5 border rounded-md text-[9px] uppercase tracking-wider {priorityMap[log.priority]?.color || ''}">
+                                                    {log.priority}
+                                                </span>
+                                            {/if}
+                                            <span class="px-3 py-1 border rounded-full text-[10px] font-bold uppercase tracking-wide flex items-center gap-1.5 {statusMap[log.status].color}">
+                                                <svelte:component this={statusMap[log.status].icon} size={12} />
+                                                {statusMap[log.status].label}
+                                            </span>
+                                        </div>
+                                        {#if log.cost}
+                                            <span class="text-sm font-bold text-slate-900">${log.cost}</span>
+                                        {/if}
+                                    </div>
                                 
                                 <button 
                                     on:click={() => openUpdate(log)}

@@ -9,6 +9,7 @@ class MaintenanceLog extends Model
     protected $fillable = [
         'item_id',
         'reported_by',
+        'priority',
         'description',
         'status',
         'start_date',
